@@ -23,12 +23,6 @@
     "pg": "^8.13.1"
   },
   "devDependencies": {
-    "better-sqlite3": "^12.9.0",
     "nodemon": "^3.1.14"
-  },
-  "overrides": {
-    "better-sqlite3": {
-      "node-gyp": "node-gyp@9.4.0"
-    }
   }
 }
