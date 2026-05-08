@@ -25,7 +25,7 @@ const upload = multer({ dest: uploadsDir });
 app.set('trust proxy', isProduction ? 1 : 0);
 
 const corsOrigins = isProduction
-  ? [frontendUrl, 'https://dairy-farm-app-postgres.vercel.app']
+  ? [frontendUrl, 'https://dairy-farm-app-postgres.vercel.app', 'https://dairy-farm-app-postgres-production.up.railway.app', 'https://dairy-farm-app-postgres-production-e.up.railway.app']
   : [frontendUrl, 'http://localhost:5173', 'http://localhost:3000'];
 
 const apiLimiter = rateLimit({

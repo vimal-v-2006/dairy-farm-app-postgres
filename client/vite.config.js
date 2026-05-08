@@ -13,4 +13,7 @@ export default defineConfig({
       "/uploads": "http://localhost:4000",
     },
   },
+  define: {
+    "process.env.VITE_API_URL": JSON.stringify(process.env.VITE_API_URL || ""),
+  },
 });
