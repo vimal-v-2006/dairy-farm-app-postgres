@@ -1,0 +1,8 @@
+{
+  "name": "dairy-farm-scripts",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.9.0"
+  }
+}
