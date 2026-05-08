@@ -16,7 +16,7 @@ const { query, queryOne, execute, insertReturning, initDb, poolEnd, healthCheck,
 const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'milk-business-pro-reset-2026-05-01-v2';
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 const isProduction = process.env.NODE_ENV === 'production';
 const uploadsDir = process.env.UPLOADS_DIR ? path.resolve(process.env.UPLOADS_DIR) : path.join(__dirname, '..', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -25,7 +25,7 @@ const upload = multer({ dest: uploadsDir });
 app.set('trust proxy', isProduction ? 1 : 0);
 
 const corsOrigins = isProduction
-  ? [frontendUrl]
+  ? [frontendUrl, 'https://dairy-farm-app-postgres.vercel.app']
   : [frontendUrl, 'http://localhost:5173', 'http://localhost:3000'];
 
 const apiLimiter = rateLimit({
@@ -44,7 +44,12 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
-app.use(cors({ origin: corsOrigins, credentials: true }));
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: '5mb' }));
 app.use(isProduction ? morgan('combined') : morgan('dev'));
