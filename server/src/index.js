@@ -315,9 +315,9 @@ async function getDashboard() {
 
   const todayEntry = await queryOne('SELECT * FROM daily_entries WHERE entry_date = $1', [todayStr]) || {};
   const monthly = await queryOne(`SELECT COALESCE(SUM(total_income),0) AS income, COALESCE(SUM(total_expenses),0) AS expenses, COALESCE(SUM(profit),0) AS profit, COALESCE(SUM(total_milk_litres),0) AS milk FROM daily_entries WHERE entry_date BETWEEN $1 AND $2`, [monthStart, monthEnd]);
-  const buyerSplit = await query(`SELECT b.name, ROUND(SUM(ms.litres),2) AS value FROM milk_sales ms LEFT JOIN buyers b ON b.id=ms.buyer_id GROUP BY b.name ORDER BY value DESC`);
+  const buyerSplit = await query(`SELECT b.name, ROUND(SUM(ms.litres)::numeric, 2) AS value FROM milk_sales ms LEFT JOIN buyers b ON b.id=ms.buyer_id GROUP BY b.name ORDER BY value DESC`);
   const trend = await query(`SELECT entry_date AS date, total_income AS income, total_expenses AS expenses, profit, total_milk_litres AS milk, remaining_milk_litres AS remaining FROM daily_entries ORDER BY entry_date DESC LIMIT 30`);
-  const cowSummary = await query(`SELECT c.id, c.name, c.status, ROUND(COALESCE(SUM(me.total_litres),0),2) AS "totalMilk", COUNT(CASE WHEN me.total_litres=0 THEN 1 END) AS "nilDays"
+  const cowSummary = await query(`SELECT c.id, c.name, c.status, ROUND(COALESCE(SUM(me.total_litres),0)::numeric, 2) AS "totalMilk", COUNT(CASE WHEN me.total_litres=0 THEN 1 END) AS "nilDays"
     FROM cows c LEFT JOIN cow_milk_entries me ON me.cow_id=c.id
     LEFT JOIN daily_entries d ON d.id=me.daily_entry_id AND d.entry_date BETWEEN $1 AND $2
     GROUP BY c.id ORDER BY "totalMilk" DESC`, [monthStart, monthEnd]);
@@ -822,9 +822,9 @@ app.get('/api/reports', auth, async (req, res) => {
   const to = end || '9999-12-31';
   const summary = await queryOne(`SELECT COUNT(*) AS "totalDays", COALESCE(SUM(total_milk_litres),0) AS milk, COALESCE(SUM(total_income),0) AS income, COALESCE(SUM(total_expenses),0) AS expenses, COALESCE(SUM(profit),0) AS profit FROM daily_entries WHERE entry_date BETWEEN $1 AND $2`, [from, to]);
   const rows = await query('SELECT * FROM daily_entries WHERE entry_date BETWEEN $1 AND $2 ORDER BY entry_date ASC', [from, to]);
-  const buyerWise = await query(`SELECT COALESCE(b.name,'Unknown') AS name, ROUND(SUM(ms.litres),2) AS litres, ROUND(SUM(ms.income),2) AS income FROM milk_sales ms LEFT JOIN daily_entries d ON d.id=ms.daily_entry_id LEFT JOIN buyers b ON b.id=ms.buyer_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY b.name ORDER BY litres DESC`, [from, to]);
-  const expenseWise = await query(`SELECT CASE WHEN e.expense_type='feed' THEN COALESCE(e.food_name_snapshot, f.name, 'Feed') ELSE COALESCE(c.name,'Unknown') END AS name, ROUND(SUM(e.amount),2) AS amount FROM expenses e LEFT JOIN expense_categories c ON c.id=e.category_id LEFT JOIN food_items f ON f.id=e.food_item_id LEFT JOIN daily_entries d ON d.id=e.daily_entry_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY CASE WHEN e.expense_type='feed' THEN COALESCE(e.food_name_snapshot, f.name, 'Feed') ELSE COALESCE(c.name,'Unknown') END ORDER BY amount DESC`, [from, to]);
-  const cowWise = await query(`SELECT cows.name, ROUND(SUM(cow_milk_entries.total_litres),2) AS litres FROM cow_milk_entries JOIN cows ON cows.id=cow_milk_entries.cow_id JOIN daily_entries d ON d.id=cow_milk_entries.daily_entry_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY cows.name ORDER BY litres DESC`, [from, to]);
+  const buyerWise = await query(`SELECT COALESCE(b.name,'Unknown') AS name, ROUND(SUM(ms.litres)::numeric, 2) AS litres, ROUND(SUM(ms.income)::numeric, 2) AS income FROM milk_sales ms LEFT JOIN daily_entries d ON d.id=ms.daily_entry_id LEFT JOIN buyers b ON b.id=ms.buyer_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY b.name ORDER BY litres DESC`, [from, to]);
+  const expenseWise = await query(`SELECT CASE WHEN e.expense_type='feed' THEN COALESCE(e.food_name_snapshot, f.name, 'Feed') ELSE COALESCE(c.name,'Unknown') END AS name, ROUND(SUM(e.amount)::numeric, 2) AS amount FROM expenses e LEFT JOIN expense_categories c ON c.id=e.category_id LEFT JOIN food_items f ON f.id=e.food_item_id LEFT JOIN daily_entries d ON d.id=e.daily_entry_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY CASE WHEN e.expense_type='feed' THEN COALESCE(e.food_name_snapshot, f.name, 'Feed') ELSE COALESCE(c.name,'Unknown') END ORDER BY amount DESC`, [from, to]);
+  const cowWise = await query(`SELECT cows.name, ROUND(SUM(cow_milk_entries.total_litres)::numeric, 2) AS litres FROM cow_milk_entries JOIN cows ON cows.id=cow_milk_entries.cow_id JOIN daily_entries d ON d.id=cow_milk_entries.daily_entry_id WHERE d.entry_date BETWEEN $1 AND $2 GROUP BY cows.name ORDER BY litres DESC`, [from, to]);
   ok(res, { summary, rows, buyerWise, expenseWise, cowWise });
 });
 
