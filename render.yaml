@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: dairy-farm-api
+    env: node
+    rootDir: server
+    region: oregon
+    plan: free
+    buildCommand: npm install --production
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: PORT
+        value: 10000
