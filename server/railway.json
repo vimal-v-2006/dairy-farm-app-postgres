@@ -3,7 +3,8 @@
   "build": {
     "builder": "NIXPACKS",
     "nixpacks": {
-      "install": ["npm install --omit=dev"],
+      "node_version": "22",
+      "install": "npm install --omit=dev",
       "start": "npm start"
     }
   },
